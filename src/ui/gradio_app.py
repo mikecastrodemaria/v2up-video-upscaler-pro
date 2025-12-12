@@ -172,7 +172,7 @@ def process_preview(video, model, scale, interp_enabled, interp_model, fps_mult,
         try:
             upscaler = create_upscaler(
                 model_name=model_name,
-                scale_factor=int(scale),
+                scale_factor=float(scale),
                 device='auto'
             )
         except ImportError as ie:
@@ -287,7 +287,7 @@ def process_full_video(video, model, scale, interp_enabled, interp_model, fps_mu
         try:
             upscaler = create_upscaler(
                 model_name=model_name,
-                scale_factor=int(scale),
+                scale_factor=float(scale),
                 device='auto'
             )
         except ImportError as ie:
@@ -424,13 +424,28 @@ def create_interface():
                             )
 
                             scale_factor = gr.Slider(
-                                minimum=2,
-                                maximum=8,
-                                step=2,
-                                value=4,
+                                minimum=0.5,
+                                maximum=16.0,
+                                step=0.1,
+                                value=4.0,
                                 label="Scale Factor",
-                                info="2x = 1080p→4K, 4x = 540p→4K"
+                                info="<1.0 = Downscale, 2.0/4.0 = Optimal AI, Other = Hybrid (AI+Resize)"
                             )
+
+                            # Quick presets
+                            with gr.Row():
+                                gr.Markdown("**Quick Presets:**")
+                            with gr.Row():
+                                btn_720_1080 = gr.Button("720p→1080p (1.5×)", size="sm")
+                                btn_1080_4k = gr.Button("1080p→4K (2×)", size="sm")
+                                btn_4k_8k = gr.Button("4K→8K (2×)", size="sm")
+                                btn_half = gr.Button("Downscale (0.5×)", size="sm")
+
+                            # Wire up preset buttons
+                            btn_720_1080.click(lambda: 1.5, outputs=scale_factor)
+                            btn_1080_4k.click(lambda: 2.0, outputs=scale_factor)
+                            btn_4k_8k.click(lambda: 2.0, outputs=scale_factor)
+                            btn_half.click(lambda: 0.5, outputs=scale_factor)
 
                             output_resolution = gr.Textbox(
                                 label="Output Resolution",

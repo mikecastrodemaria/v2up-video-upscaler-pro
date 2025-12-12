@@ -24,7 +24,7 @@ class SpatialUpscaler:
     def __init__(
         self,
         model_name: str = 'realesrgan',
-        scale_factor: int = 4,
+        scale_factor: float = 4.0,
         device: str = 'auto'
     ):
         """
@@ -32,11 +32,15 @@ class SpatialUpscaler:
 
         Args:
             model_name: Model to use ('realesrgan', 'swinir', 'seedvr2')
-            scale_factor: Upscaling factor (2, 4, 8)
+            scale_factor: Scaling factor (0.1 to 16.0)
+                         - Values >= 1.0: Upscaling
+                         - Values < 1.0: Downscaling
+                         - 2.0, 4.0: Optimal (pure AI)
+                         - Other values: Hybrid (AI + resize)
             device: 'cuda', 'cpu', or 'auto'
         """
         self.model_name = model_name
-        self.scale_factor = scale_factor
+        self.scale_factor = float(scale_factor)
 
         # Get system manager
         self.sys_manager = get_system_manager()
@@ -48,33 +52,40 @@ class SpatialUpscaler:
         self.device = device
 
         # Validate scale factor
-        if scale_factor not in [2, 4, 8]:
-            raise ValueError(f"Invalid scale factor: {scale_factor}. Must be 2, 4, or 8.")
+        if self.scale_factor <= 0 or self.scale_factor > 16.0:
+            raise ValueError(f"Invalid scale factor: {scale_factor}. Must be between 0.1 and 16.0.")
 
-        # Initialize model
+        # Initialize model (only if upscaling with AI)
         self.model = None
-        self._load_model()
+        self.use_ai = self.scale_factor >= 1.5  # Use AI for scales >= 1.5x
+        if self.use_ai:
+            self._load_model()
 
     def _load_model(self):
         """Load the AI model"""
-        logger.info(f"Loading {self.model_name} model (scale={self.scale_factor}, device={self.device})")
+        # Determine optimal AI model scale based on target scale
+        if self.scale_factor >= 3.0:
+            self.ai_model_scale = 4
+            logger.info(f"Using 4× AI model for {self.scale_factor}× target scale")
+        else:  # 1.5 <= scale < 3.0
+            self.ai_model_scale = 2
+            logger.info(f"Using 2× AI model for {self.scale_factor}× target scale")
+
+        logger.info(f"Loading {self.model_name} model (AI scale={self.ai_model_scale}, target={self.scale_factor}, device={self.device})")
 
         try:
             if self.model_name.lower() == 'realesrgan':
                 # Get optimal settings
                 settings = self.sys_manager.optimal_settings
 
-                # For scale 8x, we'll do 4x twice
-                model_scale = min(self.scale_factor, 4)
-
                 self.model = create_realesrgan_model(
-                    scale=model_scale,
+                    scale=self.ai_model_scale,
                     device=self.device,
                     fp16=settings['use_fp16'],
                     tile_size=settings.get('tile_size', 0)
                 )
 
-                logger.info("Real-ESRGAN model loaded successfully")
+                logger.info(f"Real-ESRGAN {self.ai_model_scale}× model loaded successfully")
 
             else:
                 raise NotImplementedError(f"Model {self.model_name} not yet implemented")
@@ -228,24 +239,68 @@ class SpatialUpscaler:
 
     def _upscale_frame(self, frame):
         """
-        Upscale a single frame
+        Upscale a single frame with arbitrary scale factor
 
         Args:
             frame: Input frame (numpy array, BGR)
 
         Returns:
-            numpy.ndarray: Upscaled frame
+            numpy.ndarray: Upscaled/downscaled frame
         """
-        # If scale is 8x and model is 4x, apply twice
-        if self.scale_factor == 8 and self.model.scale == 4:
-            # First pass
-            frame = self.model.upscale_image(frame)
-            # Second pass
-            frame = self.model.upscale_image(frame)
+        import cv2
+
+        original_h, original_w = frame.shape[:2]
+        target_h = int(original_h * self.scale_factor)
+        target_w = int(original_w * self.scale_factor)
+
+        # Case 1: Downscaling (< 1.0) - use high-quality Lanczos
+        if self.scale_factor < 1.0:
+            return cv2.resize(frame, (target_w, target_h), interpolation=cv2.INTER_LANCZOS4)
+
+        # Case 2: Small upscaling (< 1.5) - use traditional resize
+        elif self.scale_factor < 1.5:
+            return cv2.resize(frame, (target_w, target_h), interpolation=cv2.INTER_LANCZOS4)
+
+        # Case 3: Exact AI match (2.0 or 4.0) - use AI directly
+        elif self.scale_factor == 2.0:
+            return self.model.upscale_image(frame)
+
+        elif self.scale_factor == 4.0:
+            return self.model.upscale_image(frame)
+
+        # Case 4: Large scale (8.0+) - apply 4× AI multiple times
+        elif self.scale_factor >= 8.0:
+            # Apply 4× AI repeatedly
+            times = int(self.scale_factor / 4)
+            for _ in range(times):
+                frame = self.model.upscale_image(frame)
+
+            # Handle remainder with resize
+            remainder = self.scale_factor / (4 ** times)
+            if abs(remainder - 1.0) > 0.01:  # Not exact
+                current_h, current_w = frame.shape[:2]
+                final_h = int(current_h * remainder)
+                final_w = int(current_w * remainder)
+                frame = cv2.resize(frame, (final_w, final_h), interpolation=cv2.INTER_LANCZOS4)
+
+            return frame
+
+        # Case 5: Arbitrary scale - hybrid approach (AI + resize)
         else:
+            # Use AI upscaling first
             frame = self.model.upscale_image(frame)
 
-        return frame
+            # Then resize to exact target
+            ai_scaled_h, ai_scaled_w = frame.shape[:2]
+            resize_factor = self.scale_factor / self.ai_model_scale
+
+            final_h = int(original_h * self.scale_factor)
+            final_w = int(original_w * self.scale_factor)
+
+            if abs(resize_factor - 1.0) > 0.01:  # Need resize
+                frame = cv2.resize(frame, (final_w, final_h), interpolation=cv2.INTER_LANCZOS4)
+
+            return frame
 
     def upscale_preview(
         self,

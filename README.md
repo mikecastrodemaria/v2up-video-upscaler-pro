@@ -19,7 +19,7 @@ Open source video upscaling application using AI models like Real-ESRGAN, SwinIR
 
 - **🎞️ FPS Interpolation**
   - RIFE: Fast frame interpolation
-  - DAIN: Maximum quality interpolation for complex scenes
+  - DAIN: High-quality interpolation for complex scenes
 
 - **⚡ Smart Performance**
   - Automatic GPU detection and optimization
@@ -49,7 +49,7 @@ Open source video upscaling application using AI models like Real-ESRGAN, SwinIR
 - 16 GB RAM (32 GB recommended)
 - NVIDIA GPU with 12+ GB VRAM (RTX 3060 or better)
 - 50 GB free disk space
-- CUDA 11.8 or higher
+- CUDA 11.8 or higher (for NVIDIA GPU acceleration)
 
 ### Supported Platforms
 - ✅ Windows 10/11
@@ -62,8 +62,8 @@ Open source video upscaling application using AI models like Real-ESRGAN, SwinIR
 
 1. **Download or clone the repository**
    ```bash
-   git clone https://github.com/yourusername/video-upscaler-pro.git
-   cd video-upscaler-pro
+   git clone https://github.com/mikecastrodemaria/v2up-video-upscaler-pro.git
+   cd v2up-video-upscaler-pro
    ```
 
 2. **Run the installer**
@@ -76,14 +76,14 @@ Open source video upscaling application using AI models like Real-ESRGAN, SwinIR
    start.bat
    ```
 
-The application will open automatically in your browser at `http://localhost:7860`
+The application will open automatically in your browser at `http://localhost:7860`.
 
 ### Linux / macOS
 
 1. **Download or clone the repository**
    ```bash
-   git clone https://github.com/yourusername/video-upscaler-pro.git
-   cd video-upscaler-pro
+   git clone https://github.com/mikecastrodemaria/v2up-video-upscaler-pro.git
+   cd v2up-video-upscaler-pro
    ```
 
 2. **Run the installer**
@@ -97,7 +97,7 @@ The application will open automatically in your browser at `http://localhost:786
    ./start.sh
    ```
 
-The application will open automatically in your browser at `http://localhost:7860`
+The application will open automatically in your browser at `http://localhost:7860`.
 
 ## 📖 Detailed Installation
 
@@ -246,9 +246,9 @@ output_quality: 18  # CRF value
 
 ### Getting Help
 
-- 📖 Check the [Wiki](https://github.com/yourusername/video-upscaler-pro/wiki)
-- 🐛 [Report bugs](https://github.com/yourusername/video-upscaler-pro/issues)
-- 💬 [Join discussions](https://github.com/yourusername/video-upscaler-pro/discussions)
+- 📖 Check the [Wiki](https://github.com/mikecastrodemaria/v2up-video-upscaler-pro/wiki)
+- 🐛 [Report bugs](https://github.com/mikecastrodemaria/v2up-video-upscaler-pro/issues)
+- 💬 [Join discussions](https://github.com/mikecastrodemaria/v2up-video-upscaler-pro/discussions)
 
 ## 🏗️ Project Structure
 
@@ -256,7 +256,7 @@ output_quality: 18  # CRF value
 video-upscaler-pro/
 ├── app.py                  # Main entry point
 ├── requirements.txt        # Python dependencies
-├── install.bat            # Windows installer
+├── install.bat             # Windows installer
 ├── install.sh             # Linux/macOS installer
 ├── start.bat              # Windows start script
 ├── start.sh               # Linux/macOS start script
@@ -277,8 +277,8 @@ video-upscaler-pro/
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/video-upscaler-pro.git
-cd video-upscaler-pro
+git clone https://github.com/mikecastrodemaria/v2up-video-upscaler-pro.git
+cd v2up-video-upscaler-pro
 
 # Install in development mode
 pip install -e .
@@ -359,7 +359,7 @@ If you find this project useful, please consider giving it a star!
 
 ## 📧 Contact
 
-- GitHub: [@yourusername](https://github.com/yourusername)
+- GitHub: [@mikecastrodemaria](https://github.com/mikecastrodemaria)
 - Email: your.email@example.com
 
 ---
@@ -367,6 +367,3 @@ If you find this project useful, please consider giving it a star!
 <p align="center">
   Made with ❤️ by the open source community
 </p>
-#   v 2 u p - v i d e o - u p s c a l e r - p r o 
- 
- 

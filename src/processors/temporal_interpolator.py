@@ -8,9 +8,9 @@ import logging
 from typing import Dict, Optional, Callable, List
 from pathlib import Path
 
-from ..models.rife_model import create_rife_model, SimpleFrameInterpolator
-from ..utils.video_processor import VideoProcessor, VideoWriter
-from ..utils.system_manager import get_system_manager
+from models.rife_model import create_rife_model, SimpleFrameInterpolator
+from utils.video_processor import VideoProcessor, VideoWriter
+from utils.system_manager import get_system_manager
 
 logger = logging.getLogger(__name__)
 

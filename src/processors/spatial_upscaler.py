@@ -9,9 +9,9 @@ from typing import Dict, Optional, Callable
 from pathlib import Path
 import logging
 
-from ..models.realesrgan_model import create_realesrgan_model
-from ..utils.video_processor import VideoProcessor, VideoWriter
-from ..utils.system_manager import get_system_manager
+from models.realesrgan_model import create_realesrgan_model
+from utils.video_processor import VideoProcessor, VideoWriter
+from utils.system_manager import get_system_manager
 
 logger = logging.getLogger(__name__)
 

@@ -41,6 +41,29 @@ if %MAJOR% EQU 3 if %MINOR% LSS 10 (
     exit /b 1
 )
 
+REM Warn about Python 3.13+ compatibility
+if %MAJOR% EQU 3 if %MINOR% GEQ 13 (
+    echo.
+    echo ============================================================
+    echo WARNING: Python 3.13+ detected ^(%PYTHON_VERSION%^)
+    echo ============================================================
+    echo.
+    echo Python 3.13 has compatibility issues with some AI packages.
+    echo.
+    echo RECOMMENDED: Use Python 3.10, 3.11, or 3.12 for best results
+    echo.
+    echo You can continue, but AI model installation may fail.
+    echo We will install core dependencies only.
+    echo.
+    echo Download Python 3.12: https://www.python.org/downloads/
+    echo.
+    echo ============================================================
+    echo.
+    choice /C YN /M "Continue anyway"
+    if errorlevel 2 exit /b 1
+    echo.
+)
+
 echo [2/5] Creating virtual environment...
 if exist venv (
     echo Virtual environment already exists. Removing old one...

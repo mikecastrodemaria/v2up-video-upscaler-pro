@@ -11,24 +11,20 @@ imageio-ffmpeg>=0.4.9
 moviepy>=1.0.3
 decorator>=4.4.2
 
-# ML Models and utilities
-# Install basicsr and realesrgan from git for Python 3.13 compatibility
-git+https://github.com/xinntao/BasicSR.git
-git+https://github.com/xinntao/Real-ESRGAN.git
-
-# Quality metrics
-scikit-image>=0.21.0
-
 # System utilities
 psutil>=5.9.0
 tqdm>=4.66.0
 pyyaml>=6.0
 
-# Additional dependencies for Real-ESRGAN
+# Quality metrics
+scikit-image>=0.21.0
+
+# Additional dependencies
 tb-nightly
 yapf
 lmdb
 addict
+future
 
 # Development dependencies (optional)
 pytest>=7.4.0

@@ -56,17 +56,19 @@ Open source video upscaling application using AI models like Real-ESRGAN, SwinIR
 ## 📋 Requirements
 
 ### Minimum Requirements (CPU Mode)
-- Python 3.10 or higher
+- Python 3.10 - 3.12 (3.13+ supported via git installs)
 - 32 GB RAM
 - Intel i7 / AMD Ryzen 7 or better (8+ cores)
 - 50 GB free disk space
 
 ### Recommended Requirements (GPU Mode)
-- Python 3.10 or higher
+- Python 3.10 - 3.12 (3.13+ supported via git installs)
 - 16 GB RAM (32 GB recommended)
 - NVIDIA GPU with 12+ GB VRAM (RTX 3060 or better)
 - 50 GB free disk space
 - CUDA 11.8 or higher
+
+**Note**: Python 3.13+ is supported by installing AI models from git repositories (handled automatically by the installer).
 
 ### Supported Platforms
 - ✅ Windows 10/11

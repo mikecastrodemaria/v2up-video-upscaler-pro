@@ -12,29 +12,46 @@ Open source video upscaling application using AI models like Real-ESRGAN, SwinIR
 
 ## ✨ Features
 
-- **🚀 Multiple AI Models**
-  - Real-ESRGAN: Fast, excellent quality for realistic videos
-  - SwinIR: Maximum quality for photo-realistic content
-  - SeedVR2: Temporal coherence for flicker-free results
+### Currently Working (v0.2.0)
 
-- **🎞️ FPS Interpolation**
-  - RIFE: Fast frame interpolation
-  - DAIN: Maximum quality interpolation for complex scenes
+- **🚀 Real-ESRGAN Upscaling** ✅
+  - 2x, 4x, and 8x upscaling
+  - Fast, excellent quality for realistic videos
+  - Automatic model weight downloads
+  - Tile-based processing for large videos
 
-- **⚡ Smart Performance**
-  - Automatic GPU detection and optimization
-  - Adaptive memory management
-  - Support for both GPU and CPU processing
+- **🎞️ RIFE Frame Interpolation** ✅
+  - 2x, 3x, and 4x FPS interpolation
+  - Optical flow-based smooth interpolation
+  - Combine with upscaling for enhanced quality
+  - 30fps → 60fps, 120fps support
 
-- **🎯 Temporal Coherence**
-  - Reduces flickering and temporal artifacts
-  - Maintains consistency across frames
+- **⚡ Smart Performance** ✅
+  - Automatic GPU/CPU detection
+  - VRAM usage optimization
+  - Dynamic batch size adjustment
+  - FP16 support for faster processing
+  - CPU fallback mode
 
-- **🖥️ User-Friendly Interface**
+- **🎯 Testing Utilities** ✅
+  - Built-in test video generator
+  - Multiple test patterns (shapes, text, checkerboard, etc.)
+  - Quick testing script included
+
+- **🖥️ User-Friendly Interface** ✅
   - Simple drag-and-drop video upload
-  - Real-time preview
-  - Progress tracking with ETA
+  - Real-time preview (5 seconds)
+  - Live progress tracking with ETA
+  - System information display
   - Before/after comparison
+
+### Coming Soon
+
+- **SwinIR**: Maximum quality upscaling
+- **SeedVR2**: Temporal coherence for flicker-free results
+- **DAIN**: Advanced frame interpolation
+- **Quality Metrics**: PSNR, SSIM, flickering scores
+- **Batch Processing**: Process multiple videos at once
 
 ## 📋 Requirements
 
@@ -186,8 +203,44 @@ pip install -r requirements.txt
 
 ### FPS Interpolation
 
-- **RIFE**: Fast, works well for most content (24→60 fps, 30→60 fps)
-- **DAIN**: Slower but better for complex scenes with depth
+- **RIFE (Available Now)**: Optical flow-based interpolation, works well for most content (24→60 fps, 30→120 fps)
+- **DAIN (Coming Soon)**: Advanced interpolation for complex scenes with depth
+
+### Testing the Application
+
+We provide a complete testing utility to help you get started:
+
+```bash
+# Run the test script (generates test videos and starts app)
+python test_app.py
+```
+
+This will:
+1. Check all dependencies
+2. Generate test videos in `test_videos/` directory
+3. Display system information
+4. Launch the application
+
+Or generate test videos manually:
+
+```bash
+# Generate all test videos
+python -m tests.test_video_generator --output-dir test_videos
+
+# Generate specific type
+python -m tests.test_video_generator --type shapes --duration 10
+
+# Custom resolution and FPS
+python -m tests.test_video_generator --resolution 1280x720 --fps 60
+```
+
+Available test video types:
+- `shapes`: Moving shapes (good for testing upscaling)
+- `text`: Scrolling text (tests detail preservation)
+- `checker`: Checkerboard animation (tests fine details)
+- `bars`: Color bars with animation (tests color accuracy)
+- `resolution`: Resolution test pattern (tests sharpness)
+- `all`: Generate all test videos
 
 ## ⚙️ Configuration
 

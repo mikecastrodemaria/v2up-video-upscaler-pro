@@ -21,9 +21,11 @@ logger = logging.getLogger(__name__)
 from ..utils.system_manager import get_system_manager
 from ..utils.video_processor import VideoProcessor, format_duration
 from ..processors.spatial_upscaler import create_upscaler
+from ..processors.temporal_interpolator import create_interpolator
 
 # Global state
 current_upscaler = None
+current_interpolator = None
 processing_cancelled = False
 
 
@@ -92,18 +94,53 @@ def update_output_resolution(video, scale):
         return "Unknown"
 
 
-def toggle_interpolation(enabled):
-    """Show/hide interpolation options"""
-    return (
-        gr.update(visible=enabled),  # interpolation_model
-        gr.update(visible=enabled),  # fps_multiplier
-        gr.update(visible=enabled)   # target_fps
-    )
+def toggle_interpolation(enabled, video):
+    """Show/hide interpolation options and update target FPS"""
+    if not enabled or video is None:
+        return (
+            gr.update(visible=enabled),  # interpolation_model
+            gr.update(visible=enabled),  # fps_multiplier
+            gr.update(visible=enabled, value="")   # target_fps
+        )
+
+    try:
+        with VideoProcessor(video) as vp:
+            source_fps = vp.get_fps()
+
+        target = source_fps * 2  # Default 2x multiplier
+        fps_text = f"{source_fps:.1f} FPS → {target:.1f} FPS"
+
+        return (
+            gr.update(visible=True),  # interpolation_model
+            gr.update(visible=True),  # fps_multiplier
+            gr.update(visible=True, value=fps_text)   # target_fps
+        )
+    except:
+        return (
+            gr.update(visible=enabled),
+            gr.update(visible=enabled),
+            gr.update(visible=enabled, value="")
+        )
+
+
+def update_target_fps(video, multiplier):
+    """Update target FPS display based on multiplier"""
+    if video is None:
+        return ""
+
+    try:
+        with VideoProcessor(video) as vp:
+            source_fps = vp.get_fps()
+
+        target_fps = source_fps * int(multiplier)
+        return f"{source_fps:.1f} FPS → {target_fps:.1f} FPS"
+    except:
+        return ""
 
 
 def process_preview(video, model, scale, interp_enabled, interp_model, fps_mult, progress=gr.Progress()):
     """Process video preview (first 5 seconds)"""
-    global current_upscaler
+    global current_upscaler, current_interpolator
 
     if video is None:
         return None, "⚠️ Please upload a video first"
@@ -121,33 +158,81 @@ def process_preview(video, model, scale, interp_enabled, interp_model, fps_mult,
         else:
             model_name = "realesrgan"
 
-        # Create upscaler
-        progress(0.1, desc="Loading AI model...")
+        # Create temp paths
+        upscaled_path = tempfile.mktemp(suffix='_upscaled.mp4')
+        output_path = tempfile.mktemp(suffix='_preview.mp4')
+
+        # Progress callback
+        def update_progress(current, total, eta):
+            pct = current / total if total > 0 else 0
+            progress(0.1 + 0.45 * pct, desc=f"Processing frame {current}/{total} (ETA: {int(eta)}s)")
+
+        # Step 1: Upscale
+        progress(0.1, desc="Loading upscaling model...")
         upscaler = create_upscaler(
             model_name=model_name,
             scale_factor=int(scale),
             device='auto'
         )
 
-        # Create output path
-        output_path = tempfile.mktemp(suffix='_preview.mp4')
-
-        # Progress callback
-        def update_progress(current, total, eta):
-            pct = current / total if total > 0 else 0
-            progress(0.1 + 0.9 * pct, desc=f"Processing frame {current}/{total} (ETA: {int(eta)}s)")
-
-        # Process preview
-        progress(0.1, desc="Processing preview (5 seconds)...")
-        result = upscaler.upscale_preview(
+        progress(0.15, desc="Upscaling preview (5 seconds)...")
+        upscale_result = upscaler.upscale_preview(
             video,
-            output_path,
+            upscaled_path if interp_enabled else output_path,
             duration=5.0,
             progress_callback=update_progress
         )
 
-        if result['success']:
-            metrics = result['metrics']
+        if not upscale_result['success']:
+            return None, f"❌ Upscaling error: {upscale_result.get('error', 'Unknown error')}"
+
+        # Step 2: Interpolate (if enabled)
+        if interp_enabled:
+            progress(0.55, desc="Loading interpolation model...")
+
+            interpolator = create_interpolator(
+                model_name='rife',  # Using RIFE
+                device='auto'
+            )
+
+            def interp_progress(current, total, eta):
+                pct = current / total if total > 0 else 0
+                progress(0.6 + 0.4 * pct, desc=f"Interpolating {current}/{total} pairs (ETA: {int(eta)}s)")
+
+            progress(0.6, desc=f"Interpolating FPS ({fps_mult}x)...")
+            interp_result = interpolator.interpolate_preview(
+                upscaled_path,
+                output_path,
+                fps_multiplier=int(fps_mult),
+                duration=5.0,
+                progress_callback=interp_progress
+            )
+
+            # Clean up temp file
+            if os.path.exists(upscaled_path):
+                os.remove(upscaled_path)
+
+            if not interp_result['success']:
+                return None, f"❌ Interpolation error: {interp_result.get('error', 'Unknown error')}"
+
+            # Combine metrics
+            metrics = upscale_result['metrics']
+            interp_metrics = interp_result['metrics']
+
+            status = f"✅ Preview completed!\n\n"
+            status += f"📐 Upscaling:\n"
+            status += f"  Input: {metrics['input_resolution']}\n"
+            status += f"  Output: {metrics['output_resolution']}\n"
+            status += f"  Time: {metrics['total_time']:.1f}s\n\n"
+            status += f"🎞️ Interpolation:\n"
+            status += f"  FPS: {interp_metrics.get('original_fps', 'N/A'):.1f} → {interp_metrics.get('new_fps', 'N/A'):.1f}\n"
+            status += f"  Time: {interp_metrics['total_time']:.1f}s\n\n"
+            status += f"⏱️ Total time: {metrics['total_time'] + interp_metrics['total_time']:.1f}s"
+
+            return output_path, status
+        else:
+            # Only upscaling
+            metrics = upscale_result['metrics']
             status = f"✅ Preview completed!\n\n"
             status += f"⏱️ Processing time: {metrics['total_time']:.1f}s\n"
             status += f"🎬 Frames processed: {metrics['frames_processed']}\n"
@@ -156,8 +241,6 @@ def process_preview(video, model, scale, interp_enabled, interp_model, fps_mult,
             status += f"⚡ Avg per frame: {metrics['avg_time_per_frame']:.3f}s"
 
             return output_path, status
-        else:
-            return None, f"❌ Error: {result.get('error', 'Unknown error')}"
 
     except Exception as e:
         logger.error(f"Error in preview: {e}", exc_info=True)
@@ -327,36 +410,38 @@ def create_interface():
 
                         # Interpolation settings
                         with gr.Group():
-                            gr.Markdown("### 🎞️ FPS Interpolation (Coming Soon)")
+                            gr.Markdown("### 🎞️ FPS Interpolation")
 
                             enable_interpolation = gr.Checkbox(
                                 label="Enable FPS Interpolation",
                                 value=False,
-                                interactive=False
+                                interactive=True
                             )
 
                             interpolation_model = gr.Dropdown(
-                                choices=["RIFE (Fast)", "DAIN (Maximum Quality)"],
+                                choices=["RIFE (Fast - Optical Flow)", "DAIN (Maximum Quality) - Coming Soon"],
                                 label="Interpolation Model",
-                                value="RIFE (Fast)",
+                                value="RIFE (Fast - Optical Flow)",
                                 visible=False,
-                                interactive=False
+                                interactive=True
                             )
 
                             fps_multiplier = gr.Slider(
                                 minimum=2,
                                 maximum=4,
-                                step=2,
+                                step=1,
                                 value=2,
                                 label="FPS Multiplier",
                                 visible=False,
-                                interactive=False
+                                interactive=True,
+                                info="2x = 30→60fps, 4x = 30→120fps"
                             )
 
                             target_fps = gr.Textbox(
                                 label="Target FPS",
                                 interactive=False,
-                                visible=False
+                                visible=False,
+                                placeholder="Will be calculated automatically"
                             )
 
                     with gr.Column(scale=1):
@@ -511,8 +596,15 @@ def create_interface():
         # Interpolation toggle
         enable_interpolation.change(
             fn=toggle_interpolation,
-            inputs=[enable_interpolation],
+            inputs=[enable_interpolation, video_input],
             outputs=[interpolation_model, fps_multiplier, target_fps]
+        )
+
+        # FPS multiplier change
+        fps_multiplier.change(
+            fn=update_target_fps,
+            inputs=[video_input, fps_multiplier],
+            outputs=[target_fps]
         )
 
         # Preview button

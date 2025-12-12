@@ -1,25 +1,34 @@
-# Core dependencies
-gradio>=4.0.0
-torch>=2.0.0
-torchvision>=0.15.0
-opencv-python>=4.8.0
-numpy<2.0.0  # Pin for compatibility with older packages
-pillow>=10.0.0
+# Core dependencies - Windows 11 & RTX 5090 optimized
+# PyTorch with CUDA 12.6 for RTX 50-series support
+# Install via: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+torch>=2.5.0
+torchvision>=0.20.0
 
-# Video processing
-imageio-ffmpeg>=0.4.9
+# UI Framework
+gradio>=4.44.0
+
+# Image/Video Processing
+opencv-python>=4.10.0
+pillow>=10.4.0
+numpy>=1.24.0,<2.0.0  # Pin for compatibility
+imageio-ffmpeg>=0.5.1
 moviepy>=1.0.3
-decorator>=4.4.2
+decorator>=5.1.1
+
+# AI Model Support
+basicsr>=1.4.2
+realesrgan>=0.3.0
 
 # System utilities
-psutil>=5.9.0
+psutil>=6.0.0
 tqdm>=4.66.0
-pyyaml>=6.0
+pyyaml>=6.0.1
+orjson>=3.10.7  # Fixed: requires stable Python (not beta)
 
 # Quality metrics
-scikit-image>=0.21.0
+scikit-image>=0.24.0
 
-# Additional dependencies
+# Additional AI dependencies
 tb-nightly
 yapf
 lmdb
@@ -27,6 +36,6 @@ addict
 future
 
 # Development dependencies (optional)
-pytest>=7.4.0
-black>=23.0.0
-flake8>=6.0.0
+pytest>=8.0.0
+black>=24.0.0
+flake8>=7.0.0

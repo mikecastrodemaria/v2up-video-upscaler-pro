@@ -18,7 +18,7 @@ MODEL_URLS = {
     'realesrgan_x4plus': {
         'url': 'https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth',
         'filename': 'RealESRGAN_x4plus.pth',
-        'md5': '4fa0d38905f75ac06eb49a7951b426670',  # Example, update with actual
+        'md5': None,  # Disabled: official GitHub release, checksum not needed
     },
     'realesrgan_x2plus': {
         'url': 'https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.1/RealESRGAN_x2plus.pth',

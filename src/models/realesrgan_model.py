@@ -82,18 +82,39 @@ class RealESRGANModel:
         )
 
         # Initialize upsampler
-        self.upsampler = RealESRGANer(
-            scale=scale,
-            model_path=str(model_path),
-            model=model,
-            tile=tile_size,
-            tile_pad=tile_pad,
-            pre_pad=pre_pad,
-            half=fp16,
-            device=device
-        )
+        try:
+            self.upsampler = RealESRGANer(
+                scale=scale,
+                model_path=str(model_path),
+                model=model,
+                tile=tile_size,
+                tile_pad=tile_pad,
+                pre_pad=pre_pad,
+                half=fp16,
+                device=device
+            )
+            logger.info(f"Real-ESRGAN model loaded successfully on {device}")
 
-        logger.info(f"Real-ESRGAN model loaded successfully on {device}")
+        except (torch.cuda.CudaError, RuntimeError) as e:
+            if device == 'cuda' and 'cudaErrorNoKernelImageForDevice' in str(e):
+                # RTX 5090 or newer GPU not fully supported, fall back to CPU
+                logger.warning(f"CUDA kernel not available for this GPU, falling back to CPU")
+                logger.warning("Your GPU may be too new for this PyTorch version")
+
+                self.device = 'cpu'
+                self.upsampler = RealESRGANer(
+                    scale=scale,
+                    model_path=str(model_path),
+                    model=model,
+                    tile=tile_size,
+                    tile_pad=tile_pad,
+                    pre_pad=pre_pad,
+                    half=False,  # CPU doesn't support half precision
+                    device='cpu'
+                )
+                logger.info(f"Real-ESRGAN model loaded successfully on CPU (fallback mode)")
+            else:
+                raise
 
     def upscale_image(
         self,

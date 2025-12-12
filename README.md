@@ -367,3 +367,5 @@ If you find this project useful, please consider giving it a star!
 <p align="center">
   Made with ❤️ by the open source community
 </p>
+#   v 2 u p - v i d e o - u p s c a l e r - p r o  
+ 

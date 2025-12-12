@@ -7,21 +7,29 @@ echo Video Upscaler Pro - Installation
 echo ========================================
 echo.
 
-REM Check if Python is installed
-python --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo ERROR: Python is not installed or not in PATH
-    echo Please install Python 3.10 or higher from https://www.python.org/
-    echo Make sure to check "Add Python to PATH" during installation
-    pause
-    exit /b 1
+REM Try to use Python 3.12 if available, otherwise fall back to system python
+py -3.12 --version >nul 2>&1
+if %errorlevel% equ 0 (
+    echo Found Python 3.12, using it for best compatibility
+    set PYTHON_CMD=py -3.12
+) else (
+    echo Python 3.12 not found, checking system python...
+    python --version >nul 2>&1
+    if %errorlevel% neq 0 (
+        echo ERROR: Python is not installed or not in PATH
+        echo Please install Python 3.10, 3.11, or 3.12 from https://www.python.org/
+        echo Make sure to check "Add Python to PATH" during installation
+        pause
+        exit /b 1
+    )
+    set PYTHON_CMD=python
 )
 
 echo [1/5] Checking Python version...
-python --version
+%PYTHON_CMD% --version
 
 REM Check Python version is 3.10+
-for /f "tokens=2 delims= " %%i in ('python --version 2^>^&1') do set PYTHON_VERSION=%%i
+for /f "tokens=2 delims= " %%i in ('%PYTHON_CMD% --version 2^>^&1') do set PYTHON_VERSION=%%i
 for /f "tokens=1,2 delims=." %%a in ("%PYTHON_VERSION%") do (
     set MAJOR=%%a
     set MINOR=%%b
@@ -70,7 +78,7 @@ if exist venv (
     rmdir /s /q venv
 )
 
-python -m venv venv
+%PYTHON_CMD% -m venv venv
 if %errorlevel% neq 0 (
     echo ERROR: Failed to create virtual environment
     pause
@@ -80,12 +88,16 @@ if %errorlevel% neq 0 (
 echo [3/5] Activating virtual environment...
 call venv\Scripts\activate.bat
 
-echo [4/5] Upgrading pip...
+echo [4/6] Upgrading pip...
 python -m pip install --upgrade pip
 
-echo [5/5] Installing dependencies...
+echo [5/6] Installing PyTorch with CUDA support...
+echo This may take several minutes (downloading ~2.5 GB)...
+pip install torch==2.6.0+cu124 torchvision==0.21.0+cu124 --index-url https://download.pytorch.org/whl/cu124
+
+echo [6/6] Installing other dependencies...
 echo This may take several minutes...
-pip install -r requirements.txt
+pip install gradio opencv-python psutil tqdm pyyaml scikit-image imageio-ffmpeg moviepy decorator basicsr realesrgan
 
 if %errorlevel% neq 0 (
     echo.

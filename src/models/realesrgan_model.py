@@ -17,7 +17,7 @@ except ImportError:
     REALESRGAN_AVAILABLE = False
     logging.warning("Real-ESRGAN not available. Please install: pip install realesrgan basicsr")
 
-from ..utils.model_downloader import download_model
+from utils.model_downloader import download_model
 
 logger = logging.getLogger(__name__)
 

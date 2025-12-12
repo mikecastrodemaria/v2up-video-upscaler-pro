@@ -18,10 +18,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Import our modules
-from ..utils.system_manager import get_system_manager
-from ..utils.video_processor import VideoProcessor, format_duration
-from ..processors.spatial_upscaler import create_upscaler
-from ..processors.temporal_interpolator import create_interpolator
+from utils.system_manager import get_system_manager
+from utils.video_processor import VideoProcessor, format_duration
+from processors.spatial_upscaler import create_upscaler
+from processors.temporal_interpolator import create_interpolator
 
 # Global state
 current_upscaler = None

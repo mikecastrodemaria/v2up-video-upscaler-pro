@@ -169,11 +169,26 @@ def process_preview(video, model, scale, interp_enabled, interp_model, fps_mult,
 
         # Step 1: Upscale
         progress(0.1, desc="Loading upscaling model...")
-        upscaler = create_upscaler(
-            model_name=model_name,
-            scale_factor=int(scale),
-            device='auto'
-        )
+        try:
+            upscaler = create_upscaler(
+                model_name=model_name,
+                scale_factor=int(scale),
+                device='auto'
+            )
+        except ImportError as ie:
+            if "Real-ESRGAN not available" in str(ie):
+                error_msg = "❌ Real-ESRGAN not available\n\n"
+                error_msg += "📦 **Installation Required:**\n\n"
+                error_msg += "**Option 1 (Recommended):** Use Python 3.10-3.12\n"
+                error_msg += "  • Download: https://www.python.org/downloads/\n"
+                error_msg += "  • Run: install.bat\n\n"
+                error_msg += "**Option 2:** Manual install for Python 3.13\n"
+                error_msg += "  • See: PYTHON_313_WORKAROUND.md\n"
+                error_msg += "  • Or run: pip install realesrgan basicsr\n\n"
+                error_msg += "💡 **Alternative:** RIFE interpolation works without Real-ESRGAN\n"
+                error_msg += "  • Enable 'FPS Interpolation' and try without upscaling"
+                return None, error_msg
+            raise
 
         progress(0.15, desc="Upscaling preview (5 seconds)...")
         upscale_result = upscaler.upscale_preview(
@@ -269,11 +284,26 @@ def process_full_video(video, model, scale, interp_enabled, interp_model, fps_mu
 
         # Create upscaler
         progress(0.05, desc="Loading AI model...")
-        upscaler = create_upscaler(
-            model_name=model_name,
-            scale_factor=int(scale),
-            device='auto'
-        )
+        try:
+            upscaler = create_upscaler(
+                model_name=model_name,
+                scale_factor=int(scale),
+                device='auto'
+            )
+        except ImportError as ie:
+            if "Real-ESRGAN not available" in str(ie):
+                error_msg = "❌ Real-ESRGAN not available\n\n"
+                error_msg += "📦 **Installation Required:**\n\n"
+                error_msg += "**Option 1 (Recommended):** Use Python 3.10-3.12\n"
+                error_msg += "  • Download: https://www.python.org/downloads/\n"
+                error_msg += "  • Run: install.bat\n\n"
+                error_msg += "**Option 2:** Manual install for Python 3.13\n"
+                error_msg += "  • See: PYTHON_313_WORKAROUND.md\n"
+                error_msg += "  • Or run: pip install realesrgan basicsr\n\n"
+                error_msg += "💡 **Alternative:** RIFE interpolation works without Real-ESRGAN\n"
+                error_msg += "  • Enable 'FPS Interpolation' and try without upscaling"
+                return None, error_msg, []
+            raise
 
         # Get estimate
         estimate = upscaler.estimate_processing_time(video)

@@ -124,11 +124,18 @@ class SpatialUpscaler:
 
                 logger.info(f"Output resolution: {output_width}x{output_height}")
 
-                # Validate output resolution
-                if output_width > 7680 or output_height > 4320:
+                # Validate output resolution (check total megapixels, not individual dimensions)
+                # This allows portrait videos to have height > 4320 if total pixels < 8K
+                output_megapixels = (output_width * output_height) / (1024 * 1024)
+                max_megapixels = 33.2  # 8K = 7680x4320 = 33.2 MP
+
+                if output_megapixels > max_megapixels:
                     raise ValueError(
-                        f"Output resolution ({output_width}x{output_height}) exceeds 8K limit"
+                        f"Output resolution ({output_width}x{output_height}, {output_megapixels:.1f}MP) "
+                        f"exceeds 8K limit ({max_megapixels}MP)"
                     )
+
+                logger.info(f"Output: {output_megapixels:.1f} MP (limit: {max_megapixels} MP)")
 
                 # Determine frame range
                 if end_frame is None:

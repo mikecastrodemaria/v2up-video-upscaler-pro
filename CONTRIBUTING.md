@@ -35,12 +35,14 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 ## 🔧 Development Setup
 
 1. Clone your fork:
+2. 
    ```bash
-   git clone https://github.com/your-username/video-upscaler-pro.git
-   cd video-upscaler-pro
+   git clone https://github.com/mikecastrodemaria/v2up-video-upscaler-pro.git
+   cd v2up-video-upscaler-pro
    ```
 
-2. Install dependencies:
+3. Install dependencies:
+4. 
    ```bash
    # Windows
    install.bat
@@ -49,12 +51,12 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
    ./install.sh
    ```
 
-3. Install development dependencies:
+5. Install development dependencies:
    ```bash
    pip install pytest black flake8 pre-commit
    ```
 
-4. Set up pre-commit hooks:
+6. Set up pre-commit hooks:
    ```bash
    pre-commit install
    ```

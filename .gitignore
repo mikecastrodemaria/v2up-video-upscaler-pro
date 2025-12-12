@@ -81,3 +81,5 @@ flagged/
 
 # Claude
 .claude
+CLAUDE.md
+.app_feature_requirement.md

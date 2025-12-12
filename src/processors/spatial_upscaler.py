@@ -129,9 +129,9 @@ class SpatialUpscaler:
                 logger.info(f"Input resolution: {metadata['width']}x{metadata['height']}")
                 logger.info(f"FPS: {metadata['fps']}, Frames: {metadata['frame_count']}")
 
-                # Calculate output resolution
-                output_width = metadata['width'] * self.scale_factor
-                output_height = metadata['height'] * self.scale_factor
+                # Calculate output resolution (convert to int for OpenCV)
+                output_width = int(metadata['width'] * self.scale_factor)
+                output_height = int(metadata['height'] * self.scale_factor)
 
                 logger.info(f"Output resolution: {output_width}x{output_height}")
 
